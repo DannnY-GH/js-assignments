@@ -76,6 +76,12 @@ function isLeapYear(date) {
  *    Date(2000,1,1,10,0,0),  Date(2000,1,1,10,0,0,250)     => "00:00:00.250"
  *    Date(2000,1,1,10,0,0),  Date(2000,1,1,15,20,10,453)   => "05:20:10.453"
  */
+ function pad_left(in_val, padString, length) {
+   var str = String(in_val);
+   while (str.length < length)
+      str = padString + str;
+   return str;
+}
 function timeSpanToString(startDate, endDate) {
    var ms_in = {
       h:3600000, 
@@ -90,10 +96,10 @@ function timeSpanToString(startDate, endDate) {
    var ss = Math.floor(diff_ms / ms_in['s']);
    diff_ms -= ss * ms_in['s'];
    var sss = diff_ms;
-   var time = '' + HH.toString().padStart(2, '0') + ':' +
-                   mm.toString().padStart(2, '0') + ':' +
-                   ss.toString().padStart(2, '0') + '.' +
-                   sss.toString().padStart(3,'0');
+   var time = '' +pad_left(HH, '0', 2) + ':' +
+                  pad_left(mm, '0', 2) + ':' +
+                  pad_left(ss, '0', 2) + '.' +
+                  pad_left(sss,'0', 3);
    return time;
 }
 
