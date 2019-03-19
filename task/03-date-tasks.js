@@ -90,10 +90,10 @@ function timeSpanToString(startDate, endDate) {
    var ss = Math.floor(diff_ms / ms_in['s']);
    diff_ms -= ss * ms_in['s'];
    var sss = diff_ms;
-   var time = '' + String(HH).padStart(2, '0') + ':' +
-                   String(mm).padStart(2, '0') + ':' +
-                   String(ss).padStart(2, '0') + '.' +
-                   String(sss).padStart(3,'0');
+   var time = '' + HH.toString().padStart(2, '0') + ':' +
+                   mm.toString().padStart(2, '0') + ':' +
+                   ss.toString().padStart(2, '0') + '.' +
+                   sss.toString().padStart(3,'0');
    return time;
 }
 
