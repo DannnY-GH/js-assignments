@@ -33,7 +33,20 @@
  *
  */
 function* get99BottlesOfBeer() {
-    throw new Error('Not implemented');
+    let i = 99;
+    function s(){
+        return i > 1 ? 's' : '';
+    }
+    while(i >= 1){
+        yield i + ' bottle'+s()+' of beer on the wall, '+i+' bottle'+s()+' of beer.';
+        i--;
+        if(i == 0)
+            yield 'Take one down and pass it around, no more bottles of beer on the wall.'
+        else
+            yield 'Take one down and pass it around, '+i+' bottle'+s()+' of beer on the wall.';
+    }
+    yield 'No more bottles of beer on the wall, no more bottles of beer.';
+    yield 'Go to the store and buy some more, 99 bottles of beer on the wall.'
 }
 
 
@@ -47,7 +60,9 @@ function* get99BottlesOfBeer() {
  *
  */
 function* getFibonacciSequence() {
-    throw new Error('Not implemented');
+    for(var i = 0, j = 1;; j = i + j, i = j - i){
+        yield i;
+    }
 }
 
 
@@ -82,7 +97,12 @@ function* getFibonacciSequence() {
  *
  */
 function* depthTraversalTree(root) {
-    throw new Error('Not implemented');
+    let stack = [root];
+    while(stack.length){
+        yield root = stack.pop();
+        if(root.children != undefined)
+            root.children.reverse().forEach(x=>stack.push(x));
+    }
 }
 
 
@@ -108,7 +128,20 @@ function* depthTraversalTree(root) {
  *
  */
 function* breadthTraversalTree(root) {
-    throw new Error('Not implemented');
+    let q = [root];
+    while(q.length){
+        let u = q.pop();
+        yield u;
+        if(u.children != undefined){
+            for(var v of u.children){
+                if (!q.length && v.children == undefined) {
+                    yield v;
+                }else{
+                    q.unshift(v);
+                }
+            }
+        }
+    }
 }
 
 
@@ -126,7 +159,26 @@ function* breadthTraversalTree(root) {
  *   [ 1, 3, 5, ... ], [ -1 ] => [ -1, 1, 3, 5, ...]
  */
 function* mergeSortedSequences(source1, source2) {
-    throw new Error('Not implemented');
+    var gen_a = source1(), gen_b = source2();
+    var a = gen_a.next().value;
+    var b = gen_b.next().value;
+    while(a != undefined || b != undefined){
+        if(a != undefined && b != undefined){
+            if(a < b){
+                yield a;
+                a = gen_a.next().value
+            }else{
+                yield b;
+                b = gen_b.next().value;
+            }
+        }else if(a != undefined && b == undefined){
+            yield a;
+            a = gen_a.next().value;
+        }else{
+            yield b;
+            b = gen_b.next().value;
+        }
+    }
 }
 
 
