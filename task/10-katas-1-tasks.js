@@ -17,8 +17,43 @@
  *  ]
  */
 function createCompassPoints() {
-    throw new Error('Not implemented');
     var sides = ['N','E','S','W'];  // use array of cardinal directions only!
+    var ans = [];
+    function first_name(i){
+        return sides[Math.floor(i/8)%4];
+    }
+    function second_name(i){
+        return sides[(Math.floor(((i+8)/16))%2*2)%4]+sides[(Math.floor(i/16)*2+1)%4];
+    }
+    function third_name(i){
+        return first_name(i+2) + second_name(i);
+    }
+    function fourth_name(i){
+        let name = '';
+        if((i % 8) == 1)
+            name += first_name(i);
+        else if((i % 8) == 7)
+            name += first_name(i + 8);
+        else 
+            name += second_name(i + 1);
+        name += 'b';
+        name += (i % 4 == 1)? first_name(i + 8): first_name(i);
+        return name;
+    }
+    for(var i = 0, az = 0; i < 32; i++, az += 11.25){
+        var name = '';
+        if(i % 8 == 0){
+            name = first_name(i);
+        }else if(i % 4 == 0){
+            name = second_name(i);
+        }else if(i % 2 == 0){
+            name = third_name(i);
+        }else{
+            name = fourth_name(i);
+        }
+        ans.push({abbreviation: name, azimuth: az});
+    }
+    return ans;
 }
 
 
@@ -56,7 +91,29 @@ function createCompassPoints() {
  *   'nothing to do' => 'nothing to do'
  */
 function* expandBraces(str) {
-    throw new Error('Not implemented');
+    let ans = [str];
+    const regex = /\{[^\{\}]*?\}/g;
+    let stop = false;
+    while (!stop) {
+        stop = true;
+        let tmp = [];
+        for (let str of ans) {
+            let matches = str.match(regex);
+            if (matches) {
+                stop = false;
+                let variants = matches[0].slice(1, -1).split(',');
+                for (let option of variants) {
+                    tmp.push(str.replace(matches[0], option));
+                }
+            } else {
+                tmp.push(str);
+            }
+        }
+        ans = tmp;
+    }
+    ans = [...new Set(ans)];
+    for (let e of ans)
+        yield e;
 }
 
 
@@ -88,7 +145,23 @@ function* expandBraces(str) {
  *
  */
 function getZigZagMatrix(n) {
-    throw new Error('Not implemented');
+    var arr = [...Array(n)].map(e=>new Array(n).fill(0));
+    let i = 0, j = 1;
+    let ind = 1;
+    function ok(){
+        return i >= 0 && j >= 0 && i < n && j < n;
+    }
+    while(ok()){
+        while(ok())
+            arr[i++][j--] = ind++;
+        i--; j++;
+        (i == n-1) ? j++ : i++;
+        while(ok())
+            arr[i--][j++] = ind++;
+        i++; j--;
+        (j == n-1) ? i++ : j++;
+    }
+    return arr;
 }
 
 
@@ -113,7 +186,26 @@ function getZigZagMatrix(n) {
  *
  */
 function canDominoesMakeRow(dominoes) {
-    throw new Error('Not implemented');
+    let used = [...Array(dominoes.length)].fill(false);
+    function canArrange(start, cnt){
+        if(cnt == 0)
+            return true;
+        for(var i = 0; i < dominoes.length; i++){
+            if(start === null || !used[i]){
+                let yep = false;
+                used[i] = true;
+                if(dominoes[i][0] == start || start === null)
+                    yep |= canArrange(dominoes[i][1], cnt - 1);
+                if(dominoes[i][1] == start || start === null)
+                    yep |= canArrange(dominoes[i][0], cnt - 1);
+                used[i] = false;
+                if(yep)
+                    return true;
+            }
+        }
+        return false;
+    }
+    return canArrange(null, dominoes.length);
 }
 
 
@@ -137,7 +229,27 @@ function canDominoesMakeRow(dominoes) {
  * [ 1, 2, 4, 5]          => '1,2,4,5'
  */
 function extractRanges(nums) {
-    throw new Error('Not implemented');
+    let tmp = [];
+    let str = '';
+    function flush(){
+        if(tmp.length > 2)
+           str += tmp[0] + '-' + tmp[tmp.length - 1] + ',';
+        else{
+            str += tmp.join(',') + ',';
+        }
+        tmp = [];
+    }
+    for(var x of nums){
+        if(!tmp.length || (x-tmp[tmp.length - 1]) == 1){
+            tmp.push(x);
+        }else{
+            flush();
+            tmp.push(x);
+        }
+    }
+    if(tmp.length)
+        flush();
+    return str.slice(0, str.length - 1);
 }
 
 module.exports = {
