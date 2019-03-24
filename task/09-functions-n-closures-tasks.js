@@ -119,7 +119,8 @@ function retry(func, attempts) {
         while(cnt > 0){
             try{
                 return func();
-            }catch{
+            }
+            catch{
                 cnt--;
             }
         }
