@@ -34,7 +34,21 @@
  *
  */
 function parseBankAccount(bankAccount) {
-    throw new Error('Not implemented');
+    let m = {40:0,21:1,31:2,39:3,30:4,33:5,37:6,25:7,46:8,42:9}
+    let arr = Array(9).fill(0);
+    for(let i = 0; i < 9; i++){
+        for(let j = 0; j < 3; j++){
+            for(let k = 0; k < 3; k++){
+                arr[i] += (j + 2) * (k + 1) * (bankAccount[i*3+j*28+k] == ' ' ? 0 : 1);
+            }
+        }
+    }
+    let ans = 0;
+    for(let i = 0; i < 9; i++){
+        ans *= 10;
+        ans += m[arr[i]];
+    }
+    return ans;
 }
 
 
@@ -63,7 +77,17 @@ function parseBankAccount(bankAccount) {
  *                                                                                                'characters.'
  */
 function* wrapText(text, columns) {
-    throw new Error('Not implemented');
+    let arr = text.split(' '), buf = '';
+    for(var i = 0; i < arr.length; i++){
+        if(buf.length + arr[i].length + 1 <= columns)
+            buf += (buf.length ? ' ' : '') + arr[i];
+        else{
+            yield buf;
+            buf = arr[i];
+        }
+    }
+    if(buf.length)
+        yield buf;
 }
 
 
@@ -77,14 +101,14 @@ function* wrapText(text, columns) {
  * @example
  *   [ '4♥','5♥','6♥','7♥','8♥' ] => PokerRank.StraightFlush
  *   [ 'A♠','4♠','3♠','5♠','2♠' ] => PokerRank.StraightFlush
- *   [ '4♣','4♦','4♥','4♠','10♥' ] => PokerRank.FourOfKind
+ *   [ '4♣','4♦','4♥','4♠','10♥'] => PokerRank.FourOfKind
  *   [ '4♣','4♦','5♦','5♠','5♥' ] => PokerRank.FullHouse
  *   [ '4♣','5♣','6♣','7♣','Q♣' ] => PokerRank.Flush
  *   [ '2♠','3♥','4♥','5♥','6♥' ] => PokerRank.Straight
  *   [ '2♥','4♦','5♥','A♦','3♠' ] => PokerRank.Straight
  *   [ '2♥','2♠','2♦','7♥','A♥' ] => PokerRank.ThreeOfKind
  *   [ '2♥','4♦','4♥','A♦','A♠' ] => PokerRank.TwoPairs
- *   [ '3♥','4♥','10♥','3♦','A♠' ] => PokerRank.OnePair
+ *   [ '3♥','4♥','10♥','3♦','A♠'] => PokerRank.OnePair
  *   [ 'A♥','K♥','Q♥','2♦','3♠' ] =>  PokerRank.HighCard
  */
 const PokerRank = {
@@ -98,9 +122,49 @@ const PokerRank = {
     OnePair: 1,
     HighCard: 0
 }
-
 function getPokerHandRank(hand) {
-    throw new Error('Not implemented');
+    function gotVal(obj, val)   { return Object.values(obj).indexOf(val) != -1 }
+    function objSize(obj)       { return Object.keys(obj).length }
+    function flush()            { return objSize(suitStat) == 1 }
+    function pic(card)          { return card[card.length - 1] }
+    function val(card)          { return card.substr(0, card.length - 1) }
+    function straight() {
+        let arr = [...hand];
+        for(let i = 0; i < arr.length - 1; i++)
+            if(rank[val(arr[i])] - rank[val(arr[i + 1])] != 1)
+                if(val(arr[i]) == 'A')
+                    arr.push('1+');
+                else
+                    return false;
+            return true;
+    }
+    let rank = { 'A': 12, 'K': 11, 'Q': 10, 'J': 9, '10': 8, '9': 7, '8': 6, '7': 5, '6': 4, '5': 3, '4': 2, '3': 1, '2': 0, '1': -1}
+    let suitStat = {}, rankStat = {};
+    hand.sort((a, b) => rank[val(b)] - rank[val(a)]);
+    for(let i = 0; i < hand.length; i++){
+        let img = pic(hand[i]);
+        let w   = val(hand[i]);
+        suitStat[img] = suitStat[img] == undefined ? 1 : suitStat[img] + 1;
+        rankStat[w] = rankStat[w] == undefined ? 1 : rankStat[w] + 1;
+    }
+    if(flush() && straight())
+        return PokerRank.StraightFlush;
+    if(gotVal(rankStat, 4))
+        return PokerRank.FourOfKind;
+    if(gotVal(rankStat, 3) && gotVal(rankStat, 2))
+        return PokerRank.FullHouse;
+    if(flush())
+        return PokerRank.Flush;
+    if(straight())
+        return PokerRank.Straight;
+    if(gotVal(rankStat, 3))
+        return PokerRank.ThreeOfKind;
+    if(objSize(rankStat) == 3)
+        return PokerRank.TwoPairs;
+    if(objSize(rankStat) == 4)
+        return PokerRank.OnePair;
+    else
+        return PokerRank.HighCard;
 }
 
 
@@ -134,8 +198,41 @@ function getPokerHandRank(hand) {
  *    '|             |\n'+              '+-----+\n'           '+-------------+\n'
  *    '+-------------+\n'
  */
+
 function* getFigureRectangles(figure) {
-   throw new Error('Not implemented');
+    let W = figure.indexOf('\n');
+    let H = (figure.match(/\n/g) || []).length;
+    let dp = [...Array(H)].map(e => [...Array(W)].map(i => [0, 0, 0]));
+    function chr(y, x) { return figure[y * (W + 1) + x] }
+    function ok(y, x) { return x >= 0 && x < W && y >= 0 && y < H && chr(y, x) }
+    function rect(w, h) {
+        return '+' + '-'.repeat(w - 2) + '+\n' +
+              ('|' + ' '.repeat(w - 2) + '|\n').repeat(h - 2) +
+               '+' + '-'.repeat(w - 2) + '+\n';
+    }
+    for (let i = 0; i < H; i++) {
+        for (let j = 0; j < W; j++) {
+            if (chr(i, j) == '+' && ok(i - 1, j - 1) &&
+              ((chr(i - 1, j) == '|' && chr(i, j - 1) == '-' && dp[i - 1][j - 1][2] == 1) ||
+               (chr(i - 1, j) == '+' && chr(i, j - 1) == '+')))
+                yield rect(dp[i - 1][j - 1][0] + 2, dp[i - 1][j - 1][1] + 2);
+            else if (chr(i, j) == ' ') {
+                if (ok(i - 1, j - 1) && chr(i, j - 1) == '|' && chr(i - 1, j) == '-') {
+                    dp[i][j] = [1, 1, 1];
+                } else {
+                    if (ok(i, j - 1)) {
+                        dp[i][j][0] = dp[i][j - 1][0] + 1;
+                        dp[i][j][2] = dp[i][j - 1][2];
+                    }
+                    if (ok(i - 1, j)) {
+                        dp[i][j][1] = dp[i - 1][j][1] + 1;
+                        dp[i][j][2] = dp[i - 1][j][2];
+                    }
+                }
+            }else
+                dp[i][j][2] = 1;
+        }
+    }
 }
 
 
