@@ -123,7 +123,7 @@ const PokerRank = {
     HighCard: 0
 }
 function getPokerHandRank(hand) {
-    function gotVal(obj, val)   { return Object.values(obj).indexOf(val) != -1 }
+    function gotVal(obj, val)   { return Object.keys(obj).map(e=>obj[e]).indexOf(val) != -1 }
     function objSize(obj)       { return Object.keys(obj).length }
     function flush()            { return objSize(suitStat) == 1 }
     function pic(card)          { return card[card.length - 1] }
