@@ -20,7 +20,7 @@
  *   'ANGULAR'   => true   (first row)
  *   'REACT'     => true   (starting from the top-right R adn follow the ↓ ← ← ↓ )
  *   'UNDEFINED' => true
- *   'RED'       => true
+ *   'RED'       => true    
  *   'STRING'    => true
  *   'CLASS'     => true
  *   'ARRAY'     => true   (first column)
@@ -28,7 +28,32 @@
  *   'NULL'      => false 
  */
 function findStringInSnakingPuzzle(puzzle, searchStr) {
-    throw new Error('Not implemented');
+    let W = puzzle[0].length, H = puzzle.length;
+    let dx = [1, 0, -1, 0], dy = [0, 1, 0, -1];
+    let used = [...Array(H)].map(e => Array(W).fill(false));
+    function ok(i, j) { return i >= 0 && i < H && j >= 0 && j < W }
+    function clear(arr) { for (let i = 0; i < arr.length; i++) arr[i].fill(false); }
+    function dfs(y, x, pos) {
+        if (pos == searchStr.length)
+            return true;
+        if (!ok(y, x) || used[y][x] || searchStr[pos] != puzzle[y][x])
+            return false;
+        used[y][x] = true;
+        for (let i = 0; i < 4; i++) {
+            let ny = y + dy[i];
+            let nx = x + dx[i];
+            if (dfs(ny, nx, pos + 1))
+                return true;
+        }
+        used[y][x] = false;
+    }
+    for (let i = 0; i < puzzle.length; i++)
+        for (let j = 0; j < puzzle[0].length; j++) {
+            clear(used);
+            if (dfs(i, j, 0))
+                return true;
+        }
+    return false;
 }
 
 
@@ -45,7 +70,22 @@ function findStringInSnakingPuzzle(puzzle, searchStr) {
  *    'abc' => 'abc','acb','bac','bca','cab','cba'
  */
 function* getPermutations(chars) {
-    throw new Error('Not implemented');
+    function swap(str, i, j) { let b = [...str]; let t = b[i]; b[i] = b[j]; b[j] = t; return b.join(''); }
+    let list = []
+    function perm(start) {
+        if (start == chars.length) {
+            list.push(chars);
+            return;
+        }
+        for (let i = start; i < chars.length; i++) {
+            chars = swap(chars, start, i);
+            perm(start + 1);
+            chars = swap(chars, start, i);
+        }
+    }
+    perm(0);
+    for (let x of list)
+        yield x;
 }
 
 
@@ -60,12 +100,20 @@ function* getPermutations(chars) {
  * @return {number} max profit
  *
  * @example
- *    [ 1, 2, 3, 4, 5, 6]   => 15  (buy at 1,2,3,4,5 and then sell all at 6)
- *    [ 6, 5, 4, 3, 2, 1]   => 0   (nothing to buy)
+ *    [ 1, 2, 3, 4, 5, 6 ]  => 15  (buy at 1,2,3,4,5 and then sell all at 6)
+ *    [ 6, 5, 4, 3, 2, 1 ]  => 0   (nothing to buy)
  *    [ 1, 6, 5, 10, 8, 7 ] => 18  (buy at 1,6,5 and sell all at 10)
  */
 function getMostProfitFromStockQuotes(quotes) {
-    throw new Error('Not implemented');
+    let cache = 0, localMax = 0, i = 0;
+    while (localMax != quotes.length) {
+        for (let j = localMax; j < quotes.length; j++)
+            localMax = quotes[localMax] < quotes[j] ? j : localMax;
+        while (i != localMax)
+            cache += quotes[localMax] - quotes[i++];
+        localMax++; i++;
+    }
+    return cache;
 }
 
 
@@ -84,20 +132,32 @@ function getMostProfitFromStockQuotes(quotes) {
  * 
  */
 function UrlShortener() {
-    this.urlAllowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"+
-                           "abcdefghijklmnopqrstuvwxyz"+
-                           "0123456789-_.~!*'();:@&=+$,/?#[]";
+    this.urlAllowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+        "abcdefghijklmnopqrstuvwxyz" +
+        "0123456789-_.~!*'();:@&=+$,/?#[]";
 }
 
+const storage = new Map();
+const P = 107;
+function hash(str){
+    let h = 0, p_pow = 1;
+    for(let i = 0; i < str.length; i++){
+        h += str.charCodeAt(i) * p_pow;
+        p_pow = p_pow * P;
+    }
+    return h.toString();
+}
 UrlShortener.prototype = {
 
-    encode: function(url) {
-        throw new Error('Not implemented');
+    encode: function (url) {
+        let code = hash(url);
+        storage.set(code, url);
+        return code;
     },
-    
-    decode: function(code) {
-        throw new Error('Not implemented');
-    } 
+
+    decode: function (code) {
+        return storage.get(code);
+    }
 }
 
 
